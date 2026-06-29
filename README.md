@@ -8,7 +8,7 @@
 
 ## 기술 스택
 
-- Node.js, Express, Prisma, MariaDB
+- Node.js, Express, Prisma, SQLite (앱 컨테이너 내장, 별도 DB 컨테이너 없음)
 - Docker Compose (운영/개발 구분 없이 단일 구성)
 - 포트: **3927**
 

@@ -11,4 +11,4 @@ RUN npm install && npx prisma generate
 
 EXPOSE 3927
 
-CMD sh -c "npx prisma db push && npm install && pm2-runtime start app.js --name todaytome-api"
+CMD sh -c "mkdir -p ../data && npx prisma db push && npm install && pm2-runtime start app.js --name todaytome-api"

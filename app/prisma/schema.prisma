@@ -3,18 +3,18 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id             BigInt   @id @default(autoincrement())
-  userId         String   @unique @map("user_id") @db.VarChar(16)
-  platform       String?  @db.VarChar(32)
-  deviceName     String?  @map("device_name") @db.VarChar(128)
-  icloudEnabled  Boolean  @default(false) @map("icloud_enabled")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id            Int      @id @default(autoincrement())
+  userId        String   @unique @map("user_id")
+  platform      String?
+  deviceName    String?  @map("device_name")
+  icloudEnabled Boolean  @default(false) @map("icloud_enabled")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   bibleRecords BibleRecord[]
   devices      Device[]
@@ -23,14 +23,14 @@ model User {
 }
 
 model BibleRecord {
-  id          BigInt   @id @default(autoincrement())
-  recordId    String   @unique @map("record_id") @db.VarChar(64)
-  userId      String   @map("user_id") @db.VarChar(16)
-  subject     String   @db.VarChar(100)
-  bible       String   @db.Text
-  translation String   @default("개역개정") @db.VarChar(50)
-  recordDate  DateTime @map("record_date") @db.Date
-  source      String   @default("manual") @db.VarChar(32)
+  id          Int      @id @default(autoincrement())
+  recordId    String   @unique @map("record_id")
+  userId      String   @map("user_id")
+  subject     String
+  bible       String
+  translation String   @default("개역개정")
+  recordDate  DateTime @map("record_date")
+  source      String   @default("manual")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -42,14 +42,14 @@ model BibleRecord {
 }
 
 model Device {
-  id                BigInt   @id @default(autoincrement())
-  deviceId          String   @map("device_id") @db.VarChar(128)
-  userId            String   @map("user_id") @db.VarChar(16)
-  platform          String?  @db.VarChar(32)
-  deviceName        String?  @map("device_name") @db.VarChar(128)
-  apnsToken         String?  @map("apns_token") @db.Text
-  pushToStartToken  String?  @map("push_to_start_token") @db.Text
-  activityPushToken String?  @map("activity_push_token") @db.Text
+  id                Int      @id @default(autoincrement())
+  deviceId          String   @map("device_id")
+  userId            String   @map("user_id")
+  platform          String?
+  deviceName        String?  @map("device_name")
+  apnsToken         String?  @map("apns_token")
+  pushToStartToken  String?  @map("push_to_start_token")
+  activityPushToken String?  @map("activity_push_token")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
