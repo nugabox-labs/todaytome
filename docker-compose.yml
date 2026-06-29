@@ -1,0 +1,42 @@
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-todaytome}
+      MYSQL_USER: ${MYSQL_USER:-todaytome}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-todaytome}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3927:3927"
+    volumes:
+      - ./app:/usr/src/todaytome/app
+      - /usr/src/todaytome/app/node_modules
+    environment:
+      - TZ=Asia/Seoul
+      - PORT=3927
+    env_file:
+      - app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 1g
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db_data:

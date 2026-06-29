@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             BigInt   @id @default(autoincrement())
+  userId         String   @unique @map("user_id") @db.VarChar(16)
+  platform       String?  @db.VarChar(32)
+  deviceName     String?  @map("device_name") @db.VarChar(128)
+  icloudEnabled  Boolean  @default(false) @map("icloud_enabled")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  bibleRecords BibleRecord[]
+  devices      Device[]
+
+  @@map("users")
+}
+
+model BibleRecord {
+  id          BigInt   @id @default(autoincrement())
+  recordId    String   @unique @map("record_id") @db.VarChar(64)
+  userId      String   @map("user_id") @db.VarChar(16)
+  subject     String   @db.VarChar(100)
+  bible       String   @db.Text
+  translation String   @default("개역개정") @db.VarChar(50)
+  recordDate  DateTime @map("record_date") @db.Date
+  source      String   @default("manual") @db.VarChar(32)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [userId])
+
+  @@index([userId, recordDate], map: "idx_bible_records_user_date")
+  @@index([userId, createdAt], map: "idx_bible_records_user_created")
+  @@map("bible_records")
+}
+
+model Device {
+  id                BigInt   @id @default(autoincrement())
+  deviceId          String   @map("device_id") @db.VarChar(128)
+  userId            String   @map("user_id") @db.VarChar(16)
+  platform          String?  @db.VarChar(32)
+  deviceName        String?  @map("device_name") @db.VarChar(128)
+  apnsToken         String?  @map("apns_token") @db.Text
+  pushToStartToken  String?  @map("push_to_start_token") @db.Text
+  activityPushToken String?  @map("activity_push_token") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [userId])
+
+  @@unique([deviceId, userId], map: "uk_device_user")
+  @@index([userId], map: "idx_devices_user_id")
+  @@map("devices")
+}
