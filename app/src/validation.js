@@ -6,7 +6,7 @@ const USER_ID_REGEX = /^(?:[a-z0-9]{8}|_[a-z0-9]+)$/;
 const userIdSchema = z
   .string()
   .min(1)
-  .max(16)
+  .max(40)
   .refine((value) => USER_ID_REGEX.test(value), {
     message: "userId must be 8 lowercase letters/numbers or iCloud format (_abc123...)",
   });
