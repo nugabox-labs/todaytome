@@ -11,8 +11,7 @@ services:
     environment:
       - TZ=Asia/Seoul
       - PORT=3927
-    env_file:
-      - app/.env
+      - DATABASE_URL=file:../../data/todaytome.db
     mem_limit: 512m
     logging:
       driver: "json-file"

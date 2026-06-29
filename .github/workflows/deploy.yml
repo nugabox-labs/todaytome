@@ -65,16 +65,7 @@ jobs:
           CUR="$(git rev-parse HEAD)"
           step_time "git sync done"
 
-          if [ ! -f app/.env ]; then
-            cp app/.env.example app/.env
-            echo "Created app/.env from .env.example"
-          fi
-
           mkdir -p data
-          if grep -q '^DATABASE_URL=mysql://' app/.env 2>/dev/null; then
-            sed -i 's|^DATABASE_URL=.*|DATABASE_URL=file:../../data/todaytome.db|' app/.env
-            echo "Updated DATABASE_URL to SQLite"
-          fi
 
           step_time "container restart start"
           docker compose down --remove-orphans || true
