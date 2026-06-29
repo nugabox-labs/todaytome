@@ -65,6 +65,11 @@ jobs:
           CUR="$(git rev-parse HEAD)"
           step_time "git sync done"
 
+          if [ ! -f app/.env ]; then
+            cp app/.env.example app/.env
+            echo "Created app/.env from .env.example"
+          fi
+
           step_time "container restart start"
           docker compose up -d
           docker compose restart app
