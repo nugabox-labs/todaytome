@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>개인정보처리방침 — 오늘 나에게</title>
+        <meta
+            name="description"
+            content="오늘 나에게 개인정보처리방침 문서입니다."
+        />
+
+        <style>
+            :root {
+                --accent: #a78bfa;
+                --blue: #0a84ff;
+                --bg: #ffffff;
+                --bg-2: #f7f7f9;
+                --hairline: rgba(60, 60, 67, 0.12);
+                --hairline-2: rgba(60, 60, 67, 0.2);
+                --text: #1c1c1e;
+                --text-2: rgba(60, 60, 67, 0.78);
+                --text-3: rgba(60, 60, 67, 0.55);
+                --text-4: rgba(60, 60, 67, 0.36);
+                --font-sans:
+                    -apple-system, "SF Pro Text", "SF Pro Display",
+                    "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo",
+                    "Noto Sans KR", system-ui, sans-serif;
+            }
+
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: var(--font-sans);
+                color: var(--text);
+                background: var(--bg);
+                -webkit-font-smoothing: antialiased;
+                text-rendering: optimizeLegibility;
+                letter-spacing: -0.01em;
+                line-height: 1.65;
+            }
+
+            .container {
+                margin: 0 auto;
+                padding: 0 24px;
+            }
+            header.nav .container {
+                max-width: 1180px;
+                padding: 0 28px;
+            }
+            main .container,
+            footer .container {
+                max-width: 760px;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            header.nav {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                padding: 14px 0;
+                -webkit-backdrop-filter: blur(20px) saturate(160%);
+                backdrop-filter: blur(20px) saturate(160%);
+                background: rgba(255, 255, 255, 0.72);
+                border-bottom: 0.5px solid var(--hairline);
+            }
+            .nav-inner {
+                display: flex;
+                align-items: center;
+                gap: 24px;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                flex-shrink: 0;
+                text-decoration: none;
+                color: inherit;
+                font-size: 17px;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+            }
+            .brand-dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--accent);
+                margin-right: 8px;
+            }
+
+            main {
+                padding: 56px 0 96px;
+            }
+            .doc-head {
+                margin-bottom: 40px;
+                padding-bottom: 28px;
+                border-bottom: 1px solid var(--hairline);
+            }
+            .doc-head .label {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--accent);
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+            .doc-head h1 {
+                margin: 0 0 12px;
+                font-size: 34px;
+                font-weight: 700;
+                letter-spacing: -0.025em;
+                line-height: 1.2;
+            }
+            .doc-head .meta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 18px;
+                font-size: 13px;
+                color: var(--text-3);
+            }
+            .doc-head .meta span b {
+                color: var(--text-2);
+                font-weight: 500;
+            }
+
+            .intro {
+                margin: 0 0 32px;
+                padding: 18px 20px;
+                border-radius: 10px;
+                background: var(--bg-2);
+                border: 1px solid var(--hairline);
+                font-size: 14.5px;
+                color: var(--text-2);
+                line-height: 1.7;
+            }
+
+            .toc {
+                margin: 0 0 44px;
+                padding: 22px 24px;
+                border: 1px solid var(--hairline);
+                border-radius: 10px;
+            }
+            .toc h4 {
+                margin: 0 0 12px;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-3);
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+            .toc ol {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px 24px;
+                counter-reset: toc;
+            }
+            .toc li {
+                counter-increment: toc;
+                font-size: 14px;
+            }
+            .toc li a {
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                padding: 4px 0;
+                color: var(--text-2);
+                text-decoration: none;
+                transition: color 0.15s;
+            }
+            .toc li a:hover {
+                color: var(--accent);
+            }
+            .toc li a::before {
+                content: counter(toc, decimal-leading-zero);
+                font-variant-numeric: tabular-nums;
+                font-size: 11px;
+                color: var(--text-4);
+                font-weight: 600;
+                min-width: 22px;
+            }
+
+            section.policy {
+                margin-bottom: 44px;
+                scroll-margin-top: 88px;
+            }
+            section.policy:last-of-type {
+                margin-bottom: 0;
+            }
+            section.policy h2 {
+                margin: 0 0 14px;
+                font-size: 20px;
+                font-weight: 700;
+                letter-spacing: -0.015em;
+                display: flex;
+                align-items: baseline;
+                gap: 12px;
+            }
+            section.policy h2 .num {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-4);
+                font-variant-numeric: tabular-nums;
+                letter-spacing: 0.04em;
+            }
+            section.policy h3 {
+                margin: 22px 0 8px;
+                font-size: 15px;
+                font-weight: 600;
+                letter-spacing: -0.01em;
+                color: var(--text);
+            }
+            section.policy p {
+                margin: 0 0 12px;
+                font-size: 14.5px;
+                color: var(--text-2);
+                line-height: 1.7;
+            }
+            section.policy ul,
+            section.policy ol {
+                margin: 0 0 12px;
+                padding-left: 22px;
+                color: var(--text-2);
+                font-size: 14.5px;
+            }
+            section.policy li {
+                margin-bottom: 4px;
+                line-height: 1.7;
+            }
+            section.policy li::marker {
+                color: var(--text-4);
+            }
+
+            table.tbl {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                margin: 12px 0;
+                border: 1px solid var(--hairline);
+                border-radius: 8px;
+                overflow: hidden;
+                font-size: 13.5px;
+            }
+            table.tbl th,
+            table.tbl td {
+                padding: 10px 14px;
+                text-align: left;
+                border-bottom: 1px solid var(--hairline);
+                vertical-align: top;
+            }
+            table.tbl th {
+                font-weight: 600;
+                font-size: 12px;
+                background: var(--bg-2);
+                color: var(--text-2);
+                letter-spacing: 0.02em;
+            }
+            table.tbl tbody tr:last-child td {
+                border-bottom: 0;
+            }
+            table.tbl td {
+                color: var(--text-2);
+            }
+            table.tbl td:first-child {
+                color: var(--text);
+                font-weight: 500;
+            }
+
+            .contact {
+                margin-top: 16px;
+                padding: 20px 22px;
+                border-radius: 10px;
+                background: var(--bg-2);
+                border: 1px solid var(--hairline);
+            }
+            .contact dl {
+                margin: 0;
+                display: grid;
+                grid-template-columns: 90px 1fr;
+                row-gap: 8px;
+                column-gap: 14px;
+                font-size: 14px;
+            }
+            .contact dt {
+                color: var(--text-3);
+                font-weight: 500;
+            }
+            .contact dd {
+                margin: 0;
+                color: var(--text);
+            }
+            .contact dd a {
+                color: var(--blue);
+                text-decoration: none;
+            }
+            .contact dd a:hover {
+                text-decoration: underline;
+            }
+
+            footer {
+                border-top: 1px solid var(--hairline);
+                padding: 28px 0 48px;
+                font-size: 12px;
+                color: var(--text-3);
+            }
+            .foot-inner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 18px;
+            }
+            .foot-inner nav {
+                display: flex;
+                gap: 18px;
+            }
+            .foot-inner nav a {
+                color: var(--text-3);
+                text-decoration: none;
+            }
+            .foot-inner nav a:hover {
+                color: var(--text);
+            }
+
+            @media (max-width: 600px) {
+                main {
+                    padding: 40px 0 72px;
+                }
+                .doc-head h1 {
+                    font-size: 26px;
+                }
+                .toc ol {
+                    grid-template-columns: 1fr;
+                }
+                .contact dl {
+                    grid-template-columns: 1fr;
+                    row-gap: 4px;
+                }
+                .contact dt {
+                    margin-top: 6px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header class="nav">
+            <div class="container nav-inner">
+                <a href="/" class="brand">
+                    <span class="brand-dot"></span>오늘 나에게
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <div class="container">
+                <div class="doc-head">
+                    <div class="label">법적 고지</div>
+                    <h1>개인정보처리방침</h1>
+                    <div class="meta">
+                        <span><b>버전</b> 1.0</span>
+                        <span><b>시행일</b> 2026년 6월 30일</span>
+                        <span><b>최종 수정</b> 2026년 6월 30일</span>
+                    </div>
+                </div>
+
+                <p class="intro">
+                    누가박스(이하 "개발자")는 「개인정보 보호법」 등 관련 법령을
+                    준수하며, 이용자의 개인정보를 소중하게 보호합니다. 본
+                    개인정보처리방침은 개발자가 제공하는 오늘 나에게(Today To Me)
+                    모바일 앱(이하 "서비스") 이용과 관련하여 수집·이용·보관·파기하는
+                    개인정보에 관한 사항을 안내합니다.
+                </p>
+
+                <div class="toc">
+                    <h4>목차</h4>
+                    <ol>
+                        <li><a href="#s1">수집하는 개인정보 항목</a></li>
+                        <li><a href="#s2">개인정보 수집·이용 목적</a></li>
+                        <li><a href="#s3">개인정보의 보유 및 이용 기간</a></li>
+                        <li><a href="#s4">개인정보의 제3자 제공</a></li>
+                        <li><a href="#s5">개인정보 처리의 위탁</a></li>
+                        <li><a href="#s6">정보주체의 권리·의무 및 행사 방법</a></li>
+                        <li><a href="#s7">개인정보의 안전성 확보 조치</a></li>
+                        <li><a href="#s8">쿠키 및 자동 수집 장치의 운영</a></li>
+                        <li><a href="#s9">개인정보 보호책임자 및 문의처</a></li>
+                        <li><a href="#s10">개인정보처리방침의 변경</a></li>
+                    </ol>
+                </div>
+
+                <section class="policy" id="s1">
+                    <h2><span class="num">01</span>수집하는 개인정보 항목</h2>
+                    <p>
+                        서비스는 별도의 회원가입 없이 이용할 수 있으며, 서비스 제공을
+                        위해 아래와 같은 최소한의 정보를 수집합니다.
+                    </p>
+                    <h3>가. 이용자 식별 정보</h3>
+                    <ul>
+                        <li>iCloud 계정 기반 익명 식별자(userId) — Apple이 생성하는 랜덤 문자열이며 개인을 직접 특정할 수 없습니다</li>
+                    </ul>
+                    <h3>나. 이용자가 직접 입력하는 말씀 데이터</h3>
+                    <ul>
+                        <li>성경 구절(제목, 본문), 등록 날짜, 등록 출처</li>
+                    </ul>
+                    <h3>다. 서비스 이용 과정에서 자동 수집되는 항목</h3>
+                    <ul>
+                        <li>기기 정보(기기 이름, 플랫폼), 기기 고유 식별자(deviceId)</li>
+                        <li>APNs 푸시 토큰, Live Activity 토큰 — 알림 및 잠금화면 말씀 표시 목적</li>
+                    </ul>
+                </section>
+
+                <section class="policy" id="s2">
+                    <h2><span class="num">02</span>개인정보 수집·이용 목적</h2>
+                    <p>
+                        수집한 정보는 다음 목적으로만 이용하며, 목적이 변경되는 경우
+                        사전에 동의를 받습니다.
+                    </p>
+                    <ol>
+                        <li>오늘의 말씀 등록 및 기기 간 동기화(iCloud/CloudKit)</li>
+                        <li>잠금화면 Live Activity 및 위젯 말씀 표시</li>
+                        <li>새 말씀 등록 시 기기 푸시 알림 발송</li>
+                        <li>서비스 개선을 위한 오류 파악 및 안정성 확보</li>
+                    </ol>
+                </section>
+
+                <section class="policy" id="s3">
+                    <h2><span class="num">03</span>개인정보의 보유 및 이용 기간</h2>
+                    <p>
+                        원칙적으로 수집·이용 목적이 달성된 후에는 해당 정보를 지체 없이
+                        파기합니다. 다만 아래의 경우 일정 기간 보관합니다.
+                    </p>
+                    <table class="tbl">
+                        <thead>
+                            <tr>
+                                <th>구분</th>
+                                <th>보존 기간</th>
+                                <th>근거</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>말씀 기록 데이터</td>
+                                <td>이용자 삭제 요청 시까지</td>
+                                <td>이용자 동의</td>
+                            </tr>
+                            <tr>
+                                <td>기기 등록 정보(푸시 토큰)</td>
+                                <td>기기 해제 또는 토큰 만료 시까지</td>
+                                <td>서비스 제공 목적</td>
+                            </tr>
+                            <tr>
+                                <td>접속 로그</td>
+                                <td>3개월</td>
+                                <td>통신비밀보호법</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="policy" id="s4">
+                    <h2><span class="num">04</span>개인정보의 제3자 제공</h2>
+                    <p>
+                        수집한 개인정보를 제3자에게 제공하지 않습니다. 다만 다음의
+                        경우에 한하여 예외로 합니다.
+                    </p>
+                    <ul>
+                        <li>이용자가 사전에 명시적으로 동의한 경우</li>
+                        <li>법령에 의하거나 수사기관이 적법한 절차에 따라 요구하는 경우</li>
+                    </ul>
+                </section>
+
+                <section class="policy" id="s5">
+                    <h2><span class="num">05</span>개인정보 처리의 위탁</h2>
+                    <p>
+                        원활한 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를
+                        외부 전문업체에 위탁하고 있습니다.
+                    </p>
+                    <table class="tbl">
+                        <thead>
+                            <tr>
+                                <th>수탁업체</th>
+                                <th>위탁 업무</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Apple Inc.</td>
+                                <td>iCloud/CloudKit 데이터 동기화, APNs 푸시 알림 발송</td>
+                            </tr>
+                            <tr>
+                                <td>Amazon Web Services</td>
+                                <td>서버 호스팅 및 말씀 데이터 저장</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 13px; color: var(--text-3); margin-top: 12px;">
+                        ※ 수탁업체와는 개인정보 보호를 위한 계약을 체결하며, 위탁받은
+                        정보를 위탁 업무 이외의 목적으로 사용하지 않도록 관리·감독합니다.
+                    </p>
+                </section>
+
+                <section class="policy" id="s6">
+                    <h2><span class="num">06</span>정보주체의 권리·의무 및 행사 방법</h2>
+                    <p>이용자는 언제든지 본인의 개인정보에 대해 다음 권리를 행사할 수 있습니다.</p>
+                    <ol>
+                        <li>개인정보 열람 요구</li>
+                        <li>오류 정정 및 삭제 요구</li>
+                        <li>처리 정지 요구</li>
+                    </ol>
+                    <p>
+                        위 권리는 앱 내 [설정] 메뉴의 "지난 말씀 목록 삭제" 기능을
+                        이용하거나, 아래 문의처를 통해 행사하실 수 있으며 지체 없이
+                        조치합니다.
+                    </p>
+                </section>
+
+                <section class="policy" id="s7">
+                    <h2><span class="num">07</span>개인정보의 안전성 확보 조치</h2>
+                    <p>개인정보의 안전한 처리를 위해 다음과 같은 기술적·관리적 조치를 시행합니다.</p>
+                    <ul>
+                        <li>전송 구간 TLS 암호화 적용</li>
+                        <li>접근 권한 최소화 및 접속 기록 보관</li>
+                        <li>이용자 식별에 익명 식별자(랜덤 문자열) 사용 — 이메일·전화번호 등 직접 식별정보 미수집</li>
+                    </ul>
+                </section>
+
+                <section class="policy" id="s8">
+                    <h2><span class="num">08</span>쿠키 및 자동 수집 장치의 운영</h2>
+                    <p>
+                        본 서비스는 모바일 앱 전용으로, 쿠키(Cookie)를 사용하지 않습니다.
+                        광고 식별자(IDFA) 및 광고 추적 기능을 사용하지 않습니다.
+                    </p>
+                </section>
+
+                <section class="policy" id="s9">
+                    <h2><span class="num">09</span>개인정보 보호책임자 및 문의처</h2>
+                    <p>
+                        개인정보 처리에 관한 문의 및 불만 처리를 위해 아래와 같이
+                        개인정보 보호책임자를 지정하고 있습니다.
+                    </p>
+                    <div class="contact">
+                        <dl>
+                            <dt>책임자</dt>
+                            <dd>장누가</dd>
+                            <dt>이메일</dt>
+                            <dd>
+                                <a href="mailto:ngjang.dev@gmail.com">ngjang.dev@gmail.com</a>
+                            </dd>
+                        </dl>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-3); margin-top: 16px;">
+                        기타 개인정보 침해에 관한 신고·상담은 아래 기관으로 문의하실 수 있습니다.
+                    </p>
+                    <ul style="font-size: 13.5px">
+                        <li>개인정보분쟁조정위원회 (1833-6972, <a href="https://www.kopico.go.kr" style="color: var(--blue); text-decoration: none;">www.kopico.go.kr</a>)</li>
+                        <li>개인정보침해신고센터 (118, <a href="https://privacy.kisa.or.kr" style="color: var(--blue); text-decoration: none;">privacy.kisa.or.kr</a>)</li>
+                        <li>대검찰청 사이버수사과 (1301, <a href="https://www.spo.go.kr" style="color: var(--blue); text-decoration: none;">www.spo.go.kr</a>)</li>
+                        <li>경찰청 사이버수사국 (182, <a href="https://ecrm.cyber.go.kr" style="color: var(--blue); text-decoration: none;">ecrm.cyber.go.kr</a>)</li>
+                    </ul>
+                </section>
+
+                <section class="policy" id="s10">
+                    <h2><span class="num">10</span>개인정보처리방침의 변경</h2>
+                    <p>
+                        본 개인정보처리방침은 시행일로부터 적용되며, 법령 및 방침에 따른
+                        변경이 있는 경우 변경사항의 시행 7일 전부터 앱 내 공지를 통해
+                        고지합니다.
+                    </p>
+                    <ul>
+                        <li>공고일자: 2026년 6월 30일</li>
+                        <li>시행일자: 2026년 6월 30일</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <div class="container foot-inner">
+                <div>© 2026 오늘 나에게 · 누가박스</div>
+                <nav>
+                    <a href="/privacy">개인정보 처리방침</a>
+                </nav>
+            </div>
+        </footer>
+    </body>
+</html>
