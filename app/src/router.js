@@ -346,6 +346,12 @@ async function pushToUserDevices(userId, record) {
           "새로운 말씀이 등록되었습니다"
         );
         console.log(`[push] alert result:`, r);
+        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+          await prisma.device.update({
+            where: { deviceId_userId: { deviceId: device.deviceId, userId } },
+            data: { apnsToken: null },
+          });
+        }
       }
       // Live Activity: update if active, start if not
       if (device.activityPushToken) {
@@ -360,11 +366,23 @@ async function pushToUserDevices(userId, record) {
           if (device.pushToStartToken) {
             const r2 = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
             console.log(`[push] liveActivity fallback start result:`, r2);
+            if (!r2.ok && r2.reason && r2.reason.includes("BadDeviceToken")) {
+              await prisma.device.update({
+                where: { deviceId_userId: { deviceId: device.deviceId, userId } },
+                data: { pushToStartToken: null },
+              });
+            }
           }
         }
       } else if (device.pushToStartToken) {
         const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
         console.log(`[push] liveActivity start result:`, r);
+        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+          await prisma.device.update({
+            where: { deviceId_userId: { deviceId: device.deviceId, userId } },
+            data: { pushToStartToken: null },
+          });
+        }
       }
     })
   );
