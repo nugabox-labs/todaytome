@@ -389,6 +389,24 @@ async function pushToUserDevices(userId, record) {
 }
 
 // Temp debug: fire a test push to all devices of a user and return results
+router.delete("/api/records", async (req, res, next) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId || !isValidUserId(String(userId))) {
+      return fail(res, 400, "INVALID_USER_ID", "userId is invalid");
+    }
+
+    const { count } = await prisma.bibleRecord.deleteMany({
+      where: { userId: String(userId) },
+    });
+
+    return ok(res, { deleted: count });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/api/debug/test-push", async (req, res, next) => {
   try {
     const { userId } = req.body;
