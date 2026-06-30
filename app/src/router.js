@@ -351,6 +351,17 @@ async function pushToUserDevices(userId, record) {
       if (device.activityPushToken) {
         const r = await apns.sendLiveActivityUpdate(device.activityPushToken, record);
         console.log(`[push] liveActivity update result:`, r);
+        // BadDeviceToken = Live Activity already ended — clear stale token and fallback to push-to-start
+        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+          await prisma.device.update({
+            where: { deviceId_userId: { deviceId: device.deviceId, userId } },
+            data: { activityPushToken: null },
+          });
+          if (device.pushToStartToken) {
+            const r2 = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
+            console.log(`[push] liveActivity fallback start result:`, r2);
+          }
+        }
       } else if (device.pushToStartToken) {
         const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
         console.log(`[push] liveActivity start result:`, r);
