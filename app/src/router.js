@@ -359,6 +359,32 @@ async function pushToUserDevices(userId, record) {
   );
 }
 
+// Temp debug: fire a test push to all devices of a user and return results
+router.post("/api/debug/test-push", async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return fail(res, 400, "MISSING", "userId required");
+    const devices = await prisma.device.findMany({ where: { userId: String(userId) } });
+    const fakeRecord = { subject: "푸시 테스트", bible: "테스트 메시지입니다", translation: "개역개정", date: new Date().toISOString().slice(0, 10) };
+    const results = await Promise.all(
+      devices.map(async (device) => {
+        const r = { deviceId: device.deviceId };
+        if (device.activityPushToken) {
+          r.liveActivity = await apns.sendLiveActivityUpdate(device.activityPushToken, fakeRecord);
+        } else if (device.pushToStartToken) {
+          r.liveActivity = await apns.sendLiveActivityStart(device.pushToStartToken, fakeRecord, userId);
+        } else {
+          r.liveActivity = "no_token";
+        }
+        return r;
+      })
+    );
+    return ok(res, { results });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Temp debug: check device token state for a user
 router.get("/api/debug/devices", async (req, res, next) => {
   try {
