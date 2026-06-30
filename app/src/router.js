@@ -334,24 +334,49 @@ router.get("/api/shortcut/sample", (req, res) => {
 // Push notifications for all registered devices of a user after a new record
 async function pushToUserDevices(userId, record) {
   const devices = await prisma.device.findMany({ where: { userId } });
+  console.log(`[push] userId=${userId} devices=${devices.length}`);
   await Promise.allSettled(
     devices.map(async (device) => {
+      console.log(`[push] device=${device.deviceId} apnsToken=${device.apnsToken ? "yes" : "no"} activityPushToken=${device.activityPushToken ? "yes" : "no"} pushToStartToken=${device.pushToStartToken ? "yes" : "no"}`);
       // Regular alert push
       if (device.apnsToken) {
-        await apns.sendAlertPush(
+        const r = await apns.sendAlertPush(
           device.apnsToken,
           "새로운 말씀",
           "새로운 말씀이 등록되었습니다"
         );
+        console.log(`[push] alert result:`, r);
       }
       // Live Activity: update if active, start if not
       if (device.activityPushToken) {
-        await apns.sendLiveActivityUpdate(device.activityPushToken, record);
+        const r = await apns.sendLiveActivityUpdate(device.activityPushToken, record);
+        console.log(`[push] liveActivity update result:`, r);
       } else if (device.pushToStartToken) {
-        await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
+        const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
+        console.log(`[push] liveActivity start result:`, r);
       }
     })
   );
 }
+
+// Temp debug: check device token state for a user
+router.get("/api/debug/devices", async (req, res, next) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return fail(res, 400, "MISSING", "userId required");
+    const devices = await prisma.device.findMany({ where: { userId: String(userId) } });
+    return ok(res, {
+      devices: devices.map((d) => ({
+        deviceId: d.deviceId,
+        deviceName: d.deviceName,
+        apnsToken: d.apnsToken ? d.apnsToken.slice(0, 8) + "…" : null,
+        activityPushToken: d.activityPushToken ? d.activityPushToken.slice(0, 8) + "…" : null,
+        pushToStartToken: d.pushToStartToken ? d.pushToStartToken.slice(0, 8) + "…" : null,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;
