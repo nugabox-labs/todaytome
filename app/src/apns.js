@@ -116,12 +116,13 @@ function isConfigured() {
   return !!(process.env.APNS_KEY_ID && process.env.APNS_TEAM_ID && process.env.APNS_KEY_PATH);
 }
 
-// Send a regular alert push notification
+// Send a regular alert push notification (content-available wakes the app to refresh)
 function sendAlertPush(apnsToken, title, body) {
   const payload = {
     aps: {
       alert: { title, body },
       sound: "default",
+      "content-available": 1,
     },
   };
   return sendRaw(apnsToken, payload, BUNDLE_ID, "alert");
