@@ -345,6 +345,15 @@
     font-size: 13.5px;
     color: var(--text-3);
   }
+  .ios-download-btn {
+    margin-top: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 44px; padding: 0 22px; border-radius: 999px;
+    background: #0A0A0A; color: #fff;
+    font-size: 14px; font-weight: 600; letter-spacing: -0.1px;
+    text-decoration: none;
+  }
+  .ios-download-btn:hover { background: #1f1f1f; }
 
   /* ── footer ─────────────────── */
   footer {
@@ -504,7 +513,7 @@
     <div class="links">
       <a href="#features">기능</a>
       <a href="/privacy.html">개인정보처리방침</a>
-      <button class="cta" type="button" onclick="showSoon()">앱 다운로드</button>
+      <a class="cta" href="https://apps.apple.com/kr/app/%EC%98%A4%EB%8A%98-%EB%82%98%EC%97%90%EA%B2%8C/id6785341539" target="_blank" rel="noopener">앱 다운로드</a>
     </div>
   </nav>
 
@@ -522,9 +531,9 @@
       </p>
 
       <div class="hero-actions">
-        <button class="appstore-btn" type="button" onclick="showSoon()" aria-label="App Store에서 다운로드">
+        <a class="appstore-btn" href="https://apps.apple.com/kr/app/%EC%98%A4%EB%8A%98-%EB%82%98%EC%97%90%EA%B2%8C/id6785341539" target="_blank" rel="noopener" aria-label="App Store에서 다운로드">
           <img src="images/appstore_download.svg" alt="Download on the App Store" />
-        </button>
+        </a>
       </div>
     </div>
 
@@ -589,7 +598,8 @@
   <section class="mobile-outro" aria-label="페이지 마무리 안내">
     <h4>Today To Me</h4>
     <p>하루동안 나에게 주신 말씀을 잊지 않고 <br>조용히, 꾸준히 보며 묵상하는 습관을 들일 수 있어요.</p>
-    <div class="fine">앱스토어 등록 준비중입니다. 곧 만나요!</div>
+    <!-- 앱스토어 등록 준비중입니다. 곧 만나요! -->
+    <a class="ios-download-btn" href="https://apps.apple.com/kr/app/%EC%98%A4%EB%8A%98-%EB%82%98%EC%97%90%EA%B2%8C/id6785341539" target="_blank" rel="noopener">iOS 다운로드</a>
   </section>
 
   <!-- footer -->
@@ -599,7 +609,7 @@
 
 </div>
 
-<!-- soon-toast -->
+<!-- 앱스토어 등록 준비중입니다 안내용 soon-toast (현재 다운로드 링크 연결로 미사용)
 <div id="toast" role="status" aria-live="polite"></div>
 <style>
   #toast {
@@ -622,6 +632,7 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
   }
 </script>
+-->
 
 </body>
 </html>
