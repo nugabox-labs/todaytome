@@ -10,6 +10,7 @@ const {
   formatRecord,
   formatRecordListItem,
 } = require("./response");
+const apns = require("./apns");
 
 const router = express.Router();
 
@@ -141,7 +142,14 @@ router.post("/api/add-record", async (req, res, next) => {
       },
     });
 
-    return ok(res, { record: formatRecord(record) });
+    const formatted = formatRecord(record);
+
+    // Fire-and-forget: send push notifications to all registered devices
+    if (apns.isConfigured()) {
+      setImmediate(() => pushToUserDevices(userId, formatted).catch(console.error));
+    }
+
+    return ok(res, { record: formatted });
   } catch (error) {
     next(error);
   }
@@ -322,5 +330,28 @@ router.get("/api/shortcut/sample", (req, res) => {
     },
   });
 });
+
+// Push notifications for all registered devices of a user after a new record
+async function pushToUserDevices(userId, record) {
+  const devices = await prisma.device.findMany({ where: { userId } });
+  await Promise.allSettled(
+    devices.map(async (device) => {
+      // Regular alert push
+      if (device.apnsToken) {
+        await apns.sendAlertPush(
+          device.apnsToken,
+          "새로운 말씀",
+          "새로운 말씀이 등록되었습니다"
+        );
+      }
+      // Live Activity: update if active, start if not
+      if (device.activityPushToken) {
+        await apns.sendLiveActivityUpdate(device.activityPushToken, record);
+      } else if (device.pushToStartToken) {
+        await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
+      }
+    })
+  );
+}
 
 module.exports = router;

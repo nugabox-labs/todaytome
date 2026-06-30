@@ -4,3 +4,4 @@ app/node_modules/
 app/logs/
 data/
 .DS_Store
+app/certs/
