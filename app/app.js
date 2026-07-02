@@ -11,6 +11,7 @@ const morgan = require("morgan");
 const router = require("./src/router");
 const { prisma } = require("./src/db");
 const scheduler = require("./src/scheduler");
+const notionSync = require("./src/notionSync");
 
 const app = express();
 const port = Number(process.env.PORT) || 3927;
@@ -55,6 +56,8 @@ async function start() {
   });
   // 지정 시간 실시간 말씀 자동 표시 / 자정 말씀 갱신 스케줄러
   scheduler.start();
+  // Notion "Jesus Today" DB → 말씀 pool 동기화 (매시간)
+  notionSync.start();
 }
 
 start().catch((error) => {

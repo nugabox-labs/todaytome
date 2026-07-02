@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const { prisma } = require("./db");
 const apns = require("./apns");
 const { dailyVerse } = require("./verses");
@@ -15,16 +16,33 @@ function localParts(nowUtcMs, tzOffsetMinutes) {
   return { hhmm, dateStr };
 }
 
-// 서버 DB에 오늘 기록이 있으면 그 내용, 없으면 결정론적 오늘의 말씀
-async function todayRecordFor(userId, dateStr) {
-  const rec = await prisma.bibleRecord.findFirst({
-    where: { userId, recordDate: new Date(`${dateStr}T00:00:00.000Z`) },
+// 서버 DB에 오늘 기록이 있으면 그 내용을 반환하고, 없으면 결정론적 오늘의 말씀을
+// source="auto"로 실제 기록에 남긴다 — 앱을 열지 않은 날도 지난 말씀에 쌓이고,
+// 이후 클라이언트가 /api/today로 조회할 때 Live Activity가 보여준 것과 동일한 내용을 받는다
+// (클라이언트 로컬 pool과 서버 Notion pool이 달라도 불일치가 생기지 않는다).
+async function ensureTodayRecord(userId, dateStr) {
+  const recordDate = new Date(`${dateStr}T00:00:00.000Z`);
+  const existing = await prisma.bibleRecord.findFirst({
+    where: { userId, recordDate },
     orderBy: { createdAt: "desc" },
   });
-  if (rec) {
-    return { subject: rec.subject, bible: rec.bible, translation: rec.translation, date: dateStr };
+  if (existing) {
+    return { subject: existing.subject, bible: existing.bible, translation: existing.translation, date: dateStr };
   }
-  return dailyVerse(dateStr, userId);
+
+  const auto = await dailyVerse(dateStr, userId);
+  const created = await prisma.bibleRecord.create({
+    data: {
+      recordId: `rec_${crypto.randomUUID()}`,
+      userId,
+      subject: auto.subject.slice(0, 100),
+      bible: auto.bible,
+      translation: auto.translation,
+      recordDate,
+      source: "auto",
+    },
+  });
+  return { subject: created.subject, bible: created.bible, translation: created.translation, date: dateStr };
 }
 
 // 한 유저의 모든 기기에 Live Activity 전송
@@ -82,12 +100,12 @@ async function tick() {
 
     // 표시 시간(자동 표시 On): 실행 중이면 갱신, 아니면 새로 시작
     if (isDisplayTime) {
-      const record = await todayRecordFor(user.userId, dateStr);
+      const record = await ensureTodayRecord(user.userId, dateStr);
       await sendLiveActivity(user.userId, record, true).catch(console.error);
     }
     // 자정: 실행 중인 Live Activity만 새 날짜의 말씀으로 갱신 (새로 띄우지 않음)
     else if (isMidnight) {
-      const record = await todayRecordFor(user.userId, dateStr);
+      const record = await ensureTodayRecord(user.userId, dateStr);
       await sendLiveActivity(user.userId, record, false).catch(console.error);
     }
   }
@@ -100,4 +118,4 @@ function start() {
   console.log("[scheduler] started (60s interval)");
 }
 
-module.exports = { start, tick };
+module.exports = { start, tick, ensureTodayRecord };

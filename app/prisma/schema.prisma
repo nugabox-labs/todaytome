@@ -67,3 +67,18 @@ model Device {
   @@index([userId], map: "idx_devices_user_id")
   @@map("devices")
 }
+
+// Notion "Jesus Today" 데이터베이스에서 매시간 동기화되는 말씀 pool.
+// 사용자가 그날 직접/랜덤 등록하지 않았을 때 결정론적 오늘의 말씀(dailyVerse)의 소스로 사용.
+model NotionVerse {
+  id           Int       @id @default(autoincrement())
+  notionPageId String    @unique @map("notion_page_id")
+  subject      String
+  bible        String
+  translation  String    @default("개역개정")
+  sourceDate   DateTime? @map("source_date")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("notion_verses")
+}

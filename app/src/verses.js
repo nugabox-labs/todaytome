@@ -1,5 +1,12 @@
-// iOS 앱/위젯의 DailyVerseProvider.swift 와 pool·해시 알고리즘이 반드시 일치해야 한다.
-// (앱이 실행되지 않은 날에도 서버가 동일한 "오늘의 말씀"을 계산해 Live Activity로 띄우기 위함)
+// 해시 알고리즘은 iOS 앱/위젯의 DailyVerseProvider.swift(stableHash)와 반드시 일치해야 한다.
+//
+// pool은 Notion "Jesus Today" DB에서 매시간 동기화되는 notion_verses 테이블을 우선 사용하고,
+// (동기화 전이거나 Notion 연동이 꺼져있어) 비어있으면 아래 정적 목록으로 폴백한다.
+// 정적 목록을 쓸 때만 클라이언트(DailyVerseProvider.swift)와 완전히 동일한 pool이 보장된다 —
+// Notion pool을 쓸 때는 scheduler.js의 ensureTodayRecord가 서버에 "오늘의 말씀"을 먼저
+// 기록해두고, 클라이언트는 그 기록을 API로 읽어오므로 pool 불일치 문제가 생기지 않는다.
+
+const { prisma } = require("./db");
 
 const POOL = [
   { subject: "시편 23:1", bible: "여호와는 나의 목자시니 내게 부족함이 없으리로다" },
@@ -25,14 +32,23 @@ function stableHash(str) {
   return hash;
 }
 
+async function getPool() {
+  const synced = await prisma.notionVerse.findMany({ orderBy: { id: "asc" } });
+  if (synced.length > 0) {
+    return synced.map((v) => ({ subject: v.subject, bible: v.bible }));
+  }
+  return POOL;
+}
+
 // date: "YYYY-MM-DD"
-function dailyVerse(dateString, userId) {
-  const count = POOL.length;
+async function dailyVerse(dateString, userId) {
+  const pool = await getPool();
+  const count = pool.length;
   if (count === 0) {
     return { subject: "", bible: "", translation: "개역개정", date: dateString };
   }
   const index = Number(stableHash(`${userId}|${dateString}`) % BigInt(count));
-  const item = POOL[index];
+  const item = pool[index];
   return {
     subject: item.subject,
     bible: item.bible,
