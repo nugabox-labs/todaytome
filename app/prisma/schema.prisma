@@ -13,6 +13,14 @@ model User {
   platform      String?
   deviceName    String?  @map("device_name")
   icloudEnabled Boolean  @default(false) @map("icloud_enabled")
+  // 실시간 말씀(Live Activity) 자동 표시 설정
+  autoLiveActivity Boolean @default(true) @map("auto_live_activity")
+  liveActivityTime String @default("00:00") @map("live_activity_time")
+  // 말씀 등록 알림 설정
+  reminderEnabled  Boolean @default(true) @map("reminder_enabled")
+  reminderTime     String  @default("08:00") @map("reminder_time")
+  // 기기 로컬 시간 계산을 위한 UTC offset(분). 기본 KST(+9h).
+  tzOffsetMinutes  Int     @default(540) @map("tz_offset_minutes")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

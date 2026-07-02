@@ -96,6 +96,55 @@ router.get("/api/user/:userId", async (req, res, next) => {
   }
 });
 
+function isValidHHmm(value) {
+  return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+// 자동 표시/알림 설정 저장 — 스케줄러가 지정 시간에 Live Activity를 시작하는 데 사용
+router.post("/api/settings", async (req, res, next) => {
+  try {
+    const {
+      userId,
+      autoLiveActivity,
+      liveActivityTime,
+      reminderEnabled,
+      reminderTime,
+      tzOffsetMinutes,
+    } = req.body;
+
+    if (!userId || !isValidUserId(userId)) {
+      return fail(res, 400, "INVALID_USER_ID", "userId is invalid");
+    }
+
+    const data = {};
+    if (typeof autoLiveActivity === "boolean") data.autoLiveActivity = autoLiveActivity;
+    if (isValidHHmm(liveActivityTime)) data.liveActivityTime = liveActivityTime;
+    if (typeof reminderEnabled === "boolean") data.reminderEnabled = reminderEnabled;
+    if (isValidHHmm(reminderTime)) data.reminderTime = reminderTime;
+    if (Number.isInteger(tzOffsetMinutes)) data.tzOffsetMinutes = tzOffsetMinutes;
+
+    // 유저가 없으면 설정과 함께 생성, 있으면 설정만 갱신
+    const user = await prisma.user.upsert({
+      where: { userId },
+      create: { userId, ...data },
+      update: data,
+    });
+
+    return ok(res, {
+      settings: {
+        userId: user.userId,
+        autoLiveActivity: user.autoLiveActivity,
+        liveActivityTime: user.liveActivityTime,
+        reminderEnabled: user.reminderEnabled,
+        reminderTime: user.reminderTime,
+        tzOffsetMinutes: user.tzOffsetMinutes,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/api/add-record", async (req, res, next) => {
   try {
     const {
@@ -128,7 +177,7 @@ router.post("/api/add-record", async (req, res, next) => {
       return fail(res, 400, "VALIDATION_ERROR", "date must be YYYY-MM-DD");
     }
 
-    const allowedSources = ["manual", "random", "shortcut", "api"];
+    const allowedSources = ["manual", "random", "shortcut", "api", "auto"];
     const recordSource = allowedSources.includes(source) ? source : "manual";
 
     const record = await prisma.bibleRecord.create({
