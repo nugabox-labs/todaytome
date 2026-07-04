@@ -89,13 +89,13 @@
     letter-spacing: -0.1px;
   }
   nav .links a:hover { color: var(--ink); }
-  nav .cta {
+  nav .links a.cta {
     height: 36px; padding: 0 18px; border-radius: 999px; background: var(--ink);
     color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center;
     text-decoration: none; border: 0; cursor: pointer;
     font-family: inherit; letter-spacing: -0.1px;
   }
-  nav .cta:hover { background: #1f1f1f; }
+  nav .links a.cta:hover { background: #1f1f1f; color: #fff; }
 
   /* ── hero ─────────────────── */
   .hero {
@@ -126,7 +126,7 @@
     color: var(--text-2); max-width: 460px; font-weight: 400;
   }
   .hero-actions {
-    margin-top: 40px; display: flex; align-items: center; gap: 20px;
+    margin-top: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
   }
   .appstore-btn {
     background: transparent; border: 0; border-radius: 0;
@@ -135,7 +135,8 @@
   }
   .appstore-btn:hover { transform: translateY(-1px); }
   .appstore-btn img { height: 62px; width: auto; display: block; }
-  .hero-actions .note {
+  .ios-only-note {
+    margin: 0;
     font-size: 12px; color: var(--text-3); letter-spacing: -0.1px;
   }
 
@@ -345,15 +346,18 @@
     font-size: 13.5px;
     color: var(--text-3);
   }
-  .ios-download-btn {
+  .ios-download-wrap {
     margin-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .ios-download-btn {
     display: inline-flex; align-items: center; justify-content: center;
     height: 44px; padding: 0 22px; border-radius: 999px;
     background: #0A0A0A; color: #fff;
     font-size: 14px; font-weight: 600; letter-spacing: -0.1px;
     text-decoration: none;
   }
-  .ios-download-btn:hover { background: #1f1f1f; }
+  .ios-download-btn:hover { background: #1f1f1f; color: #fff; }
 
   /* ── footer ─────────────────── */
   footer {
@@ -394,25 +398,27 @@
     .brand .name .en { font-size: 9.5px; letter-spacing: 1.4px; }
     nav .links { gap: 18px; }
     nav .links a { display: none; }
-    nav .cta { height: 34px; padding: 0 14px; font-size: 12.5px; }
+    nav .links a.cta {
+      display: inline-flex;
+      height: 34px; padding: 0 14px; font-size: 12.5px; color: #fff;
+    }
 
     .hero { padding: 44px 0 32px; gap: 26px; }
     h1.hero-title { font-size: 56px; letter-spacing: -1.8px; }
     h1.hero-title .heavy { letter-spacing: -2px; }
     h1.hero-title .thin { letter-spacing: -1.5px; }
     .hero-sub { font-size: 16px; margin-top: 24px; max-width: none; }
-    /* Reorder in mobile: phone first, then download button */
+    /* Reorder in mobile: phone first, then App Store button (before features line) */
     .hero-text { display: contents; }
     .phone-stage { order: 2; }
     .hero-actions {
       order: 3;
       margin-top: 14px;
-      justify-content: center;
+      margin-bottom: 8px;
+      align-items: center;
       justify-self: center;
       width: 100%;
     }
-    /* Mobile: hide App Store button */
-    .hero-actions { display: none; }
     .appstore-btn { height: 46px; }
     .appstore-btn img { height: 46px; }
 
@@ -534,6 +540,7 @@
         <a class="appstore-btn" href="https://apps.apple.com/kr/app/%EC%98%A4%EB%8A%98-%EB%82%98%EC%97%90%EA%B2%8C/id6785341539" target="_blank" rel="noopener" aria-label="App Store에서 다운로드">
           <img src="images/appstore_download.svg" alt="Download on the App Store" />
         </a>
+        <p class="ios-only-note">iOS만 지원합니다</p>
       </div>
     </div>
 
@@ -599,7 +606,10 @@
     <h4>Today To Me</h4>
     <p>하루동안 나에게 주신 말씀을 잊지 않고 <br>조용히, 꾸준히 보며 묵상하는 습관을 들일 수 있어요.</p>
     <!-- 앱스토어 등록 준비중입니다. 곧 만나요! -->
-    <a class="ios-download-btn" href="https://apps.apple.com/kr/app/%EC%98%A4%EB%8A%98-%EB%82%98%EC%97%90%EA%B2%8C/id6785341539" target="_blank" rel="noopener">iOS 다운로드</a>
+    <div class="ios-download-wrap">
+      <a class="ios-download-btn" href="https://apps.apple.com/kr/app/%EC%98%A4%EB%8A%98-%EB%82%98%EC%97%90%EA%B2%8C/id6785341539" target="_blank" rel="noopener">앱 다운로드</a>
+      <p class="ios-only-note">iOS만 지원합니다</p>
+    </div>
   </section>
 
   <!-- footer -->
