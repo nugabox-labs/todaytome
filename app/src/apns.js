@@ -173,7 +173,7 @@ function sendLiveActivityStart(pushToStartToken, record, userId, environment) {
         appName: "오늘 나에게",
       },
       alert: {
-        title: "새로운 말씀",
+        title: "오늘 나에게",
         body: "새로운 말씀이 등록되었습니다",
       },
       sound: "default",

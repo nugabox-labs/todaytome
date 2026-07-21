@@ -396,7 +396,7 @@ async function pushToUserDevices(userId, record) {
       if (device.apnsToken) {
         const r = await apns.sendAlertPush(
           device.apnsToken,
-          "새로운 말씀",
+          "오늘 나에게",
           "새로운 말씀이 등록되었습니다",
           env
         );
