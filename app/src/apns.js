@@ -48,18 +48,13 @@ function getJWT() {
   return token;
 }
 
-// Reuse HTTP/2 connection per host
-const _clients = {};
-function getClient() {
-  const host = apnsHost();
-  if (_clients[host] && !_clients[host].destroyed) return _clients[host];
-  const client = http2.connect(`https://${host}`);
-  client.on("error", () => { delete _clients[host]; });
-  client.on("close", () => { delete _clients[host]; });
-  _clients[host] = client;
-  return client;
-}
+const REQUEST_TIMEOUT_MS = 8000;
 
+// Open a fresh HTTP/2 connection per push and close it when done. This app sends
+// pushes infrequently (at most a few per user per day), so connection reuse isn't
+// worth it — a long-lived cached connection can silently die (NAT/idle timeout on
+// the host network) while the client still thinks it's open, hanging every push
+// sent over it until process restart. A fresh connection avoids that failure mode.
 function sendRaw(deviceToken, payload, topic, pushType) {
   return new Promise((resolve) => {
     const jwt = getJWT();
@@ -68,19 +63,42 @@ function sendRaw(deviceToken, payload, topic, pushType) {
       return resolve({ ok: false, reason: "no_credentials" });
     }
 
+    const host = apnsHost();
     const body = JSON.stringify(payload);
+
+    let settled = false;
+    const settle = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
     let client;
     try {
-      client = getClient();
+      client = http2.connect(`https://${host}`);
     } catch (err) {
-      return resolve({ ok: false, reason: String(err) });
+      return settle({ ok: false, reason: String(err) });
     }
+
+    const closeClient = () => {
+      if (!client.destroyed) client.close();
+    };
+
+    client.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      console.warn(`[APNs] connection to ${host} timed out`);
+      client.destroy();
+      settle({ ok: false, reason: "timeout" });
+    });
+    client.on("error", (err) => {
+      console.warn(`[APNs] connection error (${host}):`, err.message);
+      settle({ ok: false, reason: err.message });
+    });
 
     const req = client.request({
       ":method": "POST",
       ":path": `/3/device/${deviceToken}`,
       ":scheme": "https",
-      ":authority": apnsHost(),
+      ":authority": host,
       authorization: `bearer ${jwt}`,
       "content-type": "application/json",
       "content-length": Buffer.byteLength(body),
@@ -96,16 +114,18 @@ function sendRaw(deviceToken, payload, topic, pushType) {
     req.on("response", (headers) => { status = headers[":status"]; });
     req.on("data", (chunk) => { responseData += chunk; });
     req.on("end", () => {
+      closeClient();
       if (status === 200) {
-        resolve({ ok: true });
+        settle({ ok: true });
       } else {
         console.warn(`[APNs] push failed ${status}: ${responseData}`);
-        resolve({ ok: false, status, reason: responseData });
+        settle({ ok: false, status, reason: responseData });
       }
     });
     req.on("error", (err) => {
+      closeClient();
       console.warn("[APNs] request error:", err.message);
-      resolve({ ok: false, reason: err.message });
+      settle({ ok: false, reason: err.message });
     });
     req.write(body);
     req.end();
