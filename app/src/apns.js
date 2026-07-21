@@ -6,10 +6,15 @@ const path = require("path");
 const BUNDLE_ID = "com.nugabox.todaytome";
 const LIVE_ACTIVITY_TOPIC = `${BUNDLE_ID}.push-type.liveactivity`;
 
-function apnsHost() {
-  return process.env.APNS_PRODUCTION === "true"
-    ? "api.push.apple.com"
-    : "api.sandbox.push.apple.com";
+// environment: "sandbox" | "production" | null. Debug(Xcode)로 설치한 기기는 sandbox 토큰,
+// TestFlight/App Store(Release)로 설치한 기기는 production 토큰만 유효함 — 잘못된 호스트로
+// 보내면 Apple이 무조건 BadDeviceToken으로 거절함. 기기별로 저장된 값을 우선 쓰고,
+// 값이 없는(구버전 클라이언트가 등록한) 기기만 APNS_PRODUCTION env로 폴백.
+function apnsHost(environment) {
+  const isProduction = environment
+    ? environment === "production"
+    : process.env.APNS_PRODUCTION === "true";
+  return isProduction ? "api.push.apple.com" : "api.sandbox.push.apple.com";
 }
 
 // JWT cache — Apple requires token to be < 60 min old; we refresh every 45 min
@@ -55,7 +60,7 @@ const REQUEST_TIMEOUT_MS = 8000;
 // worth it — a long-lived cached connection can silently die (NAT/idle timeout on
 // the host network) while the client still thinks it's open, hanging every push
 // sent over it until process restart. A fresh connection avoids that failure mode.
-function sendRaw(deviceToken, payload, topic, pushType) {
+function sendRaw(deviceToken, payload, topic, pushType, environment) {
   return new Promise((resolve) => {
     const jwt = getJWT();
     if (!jwt) {
@@ -63,7 +68,7 @@ function sendRaw(deviceToken, payload, topic, pushType) {
       return resolve({ ok: false, reason: "no_credentials" });
     }
 
-    const host = apnsHost();
+    const host = apnsHost(environment);
     const body = JSON.stringify(payload);
 
     let settled = false;
@@ -137,7 +142,7 @@ function isConfigured() {
 }
 
 // Send a regular alert push notification (content-available wakes the app to refresh)
-function sendAlertPush(apnsToken, title, body) {
+function sendAlertPush(apnsToken, title, body, environment) {
   const payload = {
     aps: {
       alert: { title, body },
@@ -145,11 +150,11 @@ function sendAlertPush(apnsToken, title, body) {
       "content-available": 1,
     },
   };
-  return sendRaw(apnsToken, payload, BUNDLE_ID, "alert");
+  return sendRaw(apnsToken, payload, BUNDLE_ID, "alert", environment);
 }
 
 // Send Live Activity push-to-start (device has no active Live Activity)
-function sendLiveActivityStart(pushToStartToken, record, userId) {
+function sendLiveActivityStart(pushToStartToken, record, userId, environment) {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     aps: {
@@ -174,11 +179,11 @@ function sendLiveActivityStart(pushToStartToken, record, userId) {
       sound: "default",
     },
   };
-  return sendRaw(pushToStartToken, payload, LIVE_ACTIVITY_TOPIC, "liveactivity");
+  return sendRaw(pushToStartToken, payload, LIVE_ACTIVITY_TOPIC, "liveactivity", environment);
 }
 
 // Send Live Activity update (device has an active Live Activity)
-function sendLiveActivityUpdate(activityPushToken, record) {
+function sendLiveActivityUpdate(activityPushToken, record, environment) {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     aps: {
@@ -193,7 +198,7 @@ function sendLiveActivityUpdate(activityPushToken, record) {
       },
     },
   };
-  return sendRaw(activityPushToken, payload, LIVE_ACTIVITY_TOPIC, "liveactivity");
+  return sendRaw(activityPushToken, payload, LIVE_ACTIVITY_TOPIC, "liveactivity", environment);
 }
 
 module.exports = {

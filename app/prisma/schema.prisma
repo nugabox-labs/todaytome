@@ -58,6 +58,8 @@ model Device {
   apnsToken         String?  @map("apns_token")
   pushToStartToken  String?  @map("push_to_start_token")
   activityPushToken String?  @map("activity_push_token")
+  // "sandbox"(Xcode Debug) | "production"(TestFlight/App Store). null이면 APNS_PRODUCTION env로 폴백.
+  apnsEnvironment   String?  @map("apns_environment")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 

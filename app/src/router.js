@@ -276,7 +276,7 @@ router.get("/api/records", async (req, res, next) => {
 
 router.post("/api/register-device", async (req, res, next) => {
   try {
-    const { userId, deviceId, platform, deviceName, apnsToken } = req.body;
+    const { userId, deviceId, platform, deviceName, apnsToken, apnsEnvironment } = req.body;
 
     if (!userId || !isValidUserId(userId)) {
       return fail(res, 400, "INVALID_USER_ID", "userId is invalid");
@@ -285,6 +285,8 @@ router.post("/api/register-device", async (req, res, next) => {
     if (!deviceId) {
       return fail(res, 400, "VALIDATION_ERROR", "deviceId is required");
     }
+
+    const validEnvironment = ["sandbox", "production"].includes(apnsEnvironment) ? apnsEnvironment : null;
 
     const user = await prisma.user.findUnique({ where: { userId } });
     if (!user) {
@@ -301,11 +303,13 @@ router.post("/api/register-device", async (req, res, next) => {
         platform: platform ?? null,
         deviceName: deviceName ?? null,
         apnsToken: apnsToken ?? null,
+        apnsEnvironment: validEnvironment,
       },
       update: {
         platform: platform ?? null,
         deviceName: deviceName ?? null,
         apnsToken: apnsToken ?? null,
+        apnsEnvironment: validEnvironment ?? undefined,
       },
     });
 
@@ -386,13 +390,15 @@ async function pushToUserDevices(userId, record) {
   console.log(`[push] userId=${userId} devices=${devices.length}`);
   await Promise.allSettled(
     devices.map(async (device) => {
-      console.log(`[push] device=${device.deviceId} apnsToken=${device.apnsToken ? "yes" : "no"} activityPushToken=${device.activityPushToken ? "yes" : "no"} pushToStartToken=${device.pushToStartToken ? "yes" : "no"}`);
+      console.log(`[push] device=${device.deviceId} env=${device.apnsEnvironment ?? "default"} apnsToken=${device.apnsToken ? "yes" : "no"} activityPushToken=${device.activityPushToken ? "yes" : "no"} pushToStartToken=${device.pushToStartToken ? "yes" : "no"}`);
+      const env = device.apnsEnvironment;
       // Regular alert push
       if (device.apnsToken) {
         const r = await apns.sendAlertPush(
           device.apnsToken,
           "새로운 말씀",
-          "새로운 말씀이 등록되었습니다"
+          "새로운 말씀이 등록되었습니다",
+          env
         );
         console.log(`[push] alert result:`, r);
         if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
@@ -404,7 +410,7 @@ async function pushToUserDevices(userId, record) {
       }
       // Live Activity: update if active, start if not
       if (device.activityPushToken) {
-        const r = await apns.sendLiveActivityUpdate(device.activityPushToken, record);
+        const r = await apns.sendLiveActivityUpdate(device.activityPushToken, record, env);
         console.log(`[push] liveActivity update result:`, r);
         // BadDeviceToken = Live Activity already ended — clear stale token and fallback to push-to-start
         if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
@@ -413,7 +419,7 @@ async function pushToUserDevices(userId, record) {
             data: { activityPushToken: null },
           });
           if (device.pushToStartToken) {
-            const r2 = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
+            const r2 = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId, env);
             console.log(`[push] liveActivity fallback start result:`, r2);
             if (!r2.ok && r2.reason && r2.reason.includes("BadDeviceToken")) {
               await prisma.device.update({
@@ -424,7 +430,7 @@ async function pushToUserDevices(userId, record) {
           }
         }
       } else if (device.pushToStartToken) {
-        const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
+        const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId, env);
         console.log(`[push] liveActivity start result:`, r);
         if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
           await prisma.device.update({
@@ -466,9 +472,9 @@ router.post("/api/debug/test-push", async (req, res, next) => {
       devices.map(async (device) => {
         const r = { deviceId: device.deviceId };
         if (device.activityPushToken) {
-          r.liveActivity = await apns.sendLiveActivityUpdate(device.activityPushToken, fakeRecord);
+          r.liveActivity = await apns.sendLiveActivityUpdate(device.activityPushToken, fakeRecord, device.apnsEnvironment);
         } else if (device.pushToStartToken) {
-          r.liveActivity = await apns.sendLiveActivityStart(device.pushToStartToken, fakeRecord, userId);
+          r.liveActivity = await apns.sendLiveActivityStart(device.pushToStartToken, fakeRecord, userId, device.apnsEnvironment);
         } else {
           r.liveActivity = "no_token";
         }
@@ -491,6 +497,7 @@ router.get("/api/debug/devices", async (req, res, next) => {
       devices: devices.map((d) => ({
         deviceId: d.deviceId,
         deviceName: d.deviceName,
+        apnsEnvironment: d.apnsEnvironment,
         apnsToken: d.apnsToken ? d.apnsToken.slice(0, 8) + "…" : null,
         activityPushToken: d.activityPushToken ? d.activityPushToken.slice(0, 8) + "…" : null,
         pushToStartToken: d.pushToStartToken ? d.pushToStartToken.slice(0, 8) + "…" : null,
