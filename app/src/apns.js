@@ -141,6 +141,17 @@ function isConfigured() {
   return !!(process.env.APNS_KEY_ID && process.env.APNS_TEAM_ID && process.env.APNS_KEY_PATH);
 }
 
+// APNs가 "이 토큰은 더 이상 못 씀"이라고 알려주는 두 가지 형태:
+//   400 BadDeviceToken  — 형식이 안 맞거나 잘못된 환경(sandbox/production)으로 보낸 경우
+//   410 Unregistered/ExpiredToken — Live Activity가 이미 끝났거나 앱이 토큰을 더 이상 안 씀
+// 이 중 하나만 체크하면 나머지 케이스에서 죽은 토큰을 계속 재사용하게 되어 무한 실패함.
+function isDeadTokenError(result) {
+  if (!result || result.ok) return false;
+  if (result.status === 410) return true;
+  if (!result.reason) return false;
+  return result.reason.includes("BadDeviceToken") || result.reason.includes("Unregistered") || result.reason.includes("ExpiredToken");
+}
+
 // Send a regular alert push notification (content-available wakes the app to refresh)
 function sendAlertPush(apnsToken, title, body, environment) {
   const payload = {
@@ -203,6 +214,7 @@ function sendLiveActivityUpdate(activityPushToken, record, environment) {
 
 module.exports = {
   isConfigured,
+  isDeadTokenError,
   sendAlertPush,
   sendLiveActivityStart,
   sendLiveActivityUpdate,

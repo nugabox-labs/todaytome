@@ -369,6 +369,32 @@ router.post("/api/live-activity-token", async (req, res, next) => {
   }
 });
 
+// 앱이 라이브 액티비티를 직접 종료했을 때 호출 — activityPushToken이 아직 유효한 것처럼
+// 남아있으면 다음 등록 시 "update" 푸시가 Apple에 그냥 수락(ok:true)만 되고 아무 효과도
+// 없어서(활동이 이미 없으므로) push-to-start 폴백을 못 타는 문제가 있었음. 앱이 직접 알려주면
+// 즉시 지워서 다음 푸시부터는 곧장 push-to-start로 새로 띄우게 한다.
+router.post("/api/clear-activity-token", async (req, res, next) => {
+  try {
+    const { userId, deviceId } = req.body;
+
+    if (!userId || !isValidUserId(userId)) {
+      return fail(res, 400, "INVALID_USER_ID", "userId is invalid");
+    }
+    if (!deviceId) {
+      return fail(res, 400, "VALIDATION_ERROR", "deviceId is required");
+    }
+
+    await prisma.device.updateMany({
+      where: { deviceId, userId },
+      data: { activityPushToken: null },
+    });
+
+    return ok(res, { cleared: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get("/api/shortcut/sample", (req, res) => {
   return ok(res, {
     sample: {
@@ -401,7 +427,7 @@ async function pushToUserDevices(userId, record) {
           env
         );
         console.log(`[push] alert result:`, r);
-        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+        if (apns.isDeadTokenError(r)) {
           await prisma.device.update({
             where: { deviceId_userId: { deviceId: device.deviceId, userId } },
             data: { apnsToken: null },
@@ -412,8 +438,8 @@ async function pushToUserDevices(userId, record) {
       if (device.activityPushToken) {
         const r = await apns.sendLiveActivityUpdate(device.activityPushToken, record, env);
         console.log(`[push] liveActivity update result:`, r);
-        // BadDeviceToken = Live Activity already ended — clear stale token and fallback to push-to-start
-        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+        // 죽은 토큰(Live Activity가 이미 종료됨) — stale 토큰 지우고 push-to-start로 폴백
+        if (apns.isDeadTokenError(r)) {
           await prisma.device.update({
             where: { deviceId_userId: { deviceId: device.deviceId, userId } },
             data: { activityPushToken: null },
@@ -421,7 +447,7 @@ async function pushToUserDevices(userId, record) {
           if (device.pushToStartToken) {
             const r2 = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId, env);
             console.log(`[push] liveActivity fallback start result:`, r2);
-            if (!r2.ok && r2.reason && r2.reason.includes("BadDeviceToken")) {
+            if (apns.isDeadTokenError(r2)) {
               await prisma.device.update({
                 where: { deviceId_userId: { deviceId: device.deviceId, userId } },
                 data: { pushToStartToken: null },
@@ -432,7 +458,7 @@ async function pushToUserDevices(userId, record) {
       } else if (device.pushToStartToken) {
         const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId, env);
         console.log(`[push] liveActivity start result:`, r);
-        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+        if (apns.isDeadTokenError(r)) {
           await prisma.device.update({
             where: { deviceId_userId: { deviceId: device.deviceId, userId } },
             data: { pushToStartToken: null },

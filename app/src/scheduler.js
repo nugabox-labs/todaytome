@@ -60,19 +60,19 @@ async function sendLiveActivity(userId, record, allowStart) {
 
       if (device.activityPushToken) {
         const r = await apns.sendLiveActivityUpdate(device.activityPushToken, record);
-        // BadDeviceToken = Live Activity가 이미 종료됨 → 토큰 정리 후 (허용 시) 재시작
-        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+        // 죽은 토큰(Live Activity가 이미 종료됨) → 토큰 정리 후 (허용 시) 재시작
+        if (apns.isDeadTokenError(r)) {
           await clear("activityPushToken");
           if (allowStart && device.pushToStartToken) {
             const r2 = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
-            if (!r2.ok && r2.reason && r2.reason.includes("BadDeviceToken")) {
+            if (apns.isDeadTokenError(r2)) {
               await clear("pushToStartToken");
             }
           }
         }
       } else if (allowStart && device.pushToStartToken) {
         const r = await apns.sendLiveActivityStart(device.pushToStartToken, record, userId);
-        if (!r.ok && r.reason && r.reason.includes("BadDeviceToken")) {
+        if (apns.isDeadTokenError(r)) {
           await clear("pushToStartToken");
         }
       }
