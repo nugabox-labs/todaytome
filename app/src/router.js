@@ -11,6 +11,7 @@ const {
   formatRecordListItem,
 } = require("./response");
 const apns = require("./apns");
+const scheduler = require("./scheduler");
 
 const router = express.Router();
 
@@ -182,23 +183,16 @@ router.post("/api/add-record", async (req, res, next) => {
 
     // "auto"(사용자가 그날 아무것도 등록 안 했을 때 클라이언트가 자동으로 채우는 결정론적 말씀)는
     // 여러 기기가 같은 iCloud 계정으로 거의 동시에 앱을 열면 각자 "오늘 기록 없음"으로 판단해
-    // 중복 생성할 수 있음 — 같은 (userId, date)에 이미 기록이 있으면 새로 만들지 않고 그걸 반환한다.
+    // 중복 생성/중복 알림을 보낼 수 있음(실제 재현됨) — scheduler.js의 동일 락 걸린 find-or-create를
+    // 그대로 써서 서버 안의 모든 "오늘의 auto 기록" 생성 경로를 하나로 합치고, 이미 있던 기록을
+    // 반환한 경우(created=false)는 새로 등록된 게 아니므로 푸시를 또 보내지 않는다.
     let record;
+    let shouldPush = true;
     if (recordSource === "auto") {
-      const existing = await prisma.bibleRecord.findFirst({
-        where: { userId, recordDate },
-        orderBy: { createdAt: "asc" },
-      });
-      record = existing ?? await prisma.bibleRecord.create({
-        data: {
-          recordId: `rec_${crypto.randomUUID()}`,
-          userId,
-          subject: subject.slice(0, 100),
-          bible,
-          recordDate,
-          source: recordSource,
-        },
-      });
+      const dateStr = toIsoDate(recordDate);
+      const result = await scheduler.ensureTodayRecord(userId, dateStr);
+      record = result.record;
+      shouldPush = result.created;
     } else {
       record = await prisma.bibleRecord.create({
         data: {
@@ -215,7 +209,7 @@ router.post("/api/add-record", async (req, res, next) => {
     const formatted = formatRecord(record);
 
     // Fire-and-forget: send push notifications to all registered devices
-    if (apns.isConfigured()) {
+    if (apns.isConfigured() && shouldPush) {
       setImmediate(() => pushToUserDevices(userId, formatted).catch(console.error));
     }
 
