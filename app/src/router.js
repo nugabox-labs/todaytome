@@ -180,16 +180,37 @@ router.post("/api/add-record", async (req, res, next) => {
     const allowedSources = ["manual", "random", "shortcut", "api", "auto"];
     const recordSource = allowedSources.includes(source) ? source : "manual";
 
-    const record = await prisma.bibleRecord.create({
-      data: {
-        recordId: `rec_${crypto.randomUUID()}`,
-        userId,
-        subject: subject.slice(0, 100),
-        bible,
-        recordDate,
-        source: recordSource,
-      },
-    });
+    // "auto"(사용자가 그날 아무것도 등록 안 했을 때 클라이언트가 자동으로 채우는 결정론적 말씀)는
+    // 여러 기기가 같은 iCloud 계정으로 거의 동시에 앱을 열면 각자 "오늘 기록 없음"으로 판단해
+    // 중복 생성할 수 있음 — 같은 (userId, date)에 이미 기록이 있으면 새로 만들지 않고 그걸 반환한다.
+    let record;
+    if (recordSource === "auto") {
+      const existing = await prisma.bibleRecord.findFirst({
+        where: { userId, recordDate },
+        orderBy: { createdAt: "asc" },
+      });
+      record = existing ?? await prisma.bibleRecord.create({
+        data: {
+          recordId: `rec_${crypto.randomUUID()}`,
+          userId,
+          subject: subject.slice(0, 100),
+          bible,
+          recordDate,
+          source: recordSource,
+        },
+      });
+    } else {
+      record = await prisma.bibleRecord.create({
+        data: {
+          recordId: `rec_${crypto.randomUUID()}`,
+          userId,
+          subject: subject.slice(0, 100),
+          bible,
+          recordDate,
+          source: recordSource,
+        },
+      });
+    }
 
     const formatted = formatRecord(record);
 
@@ -480,6 +501,27 @@ router.delete("/api/records", async (req, res, next) => {
 
     const { count } = await prisma.bibleRecord.deleteMany({
       where: { userId: String(userId) },
+    });
+
+    return ok(res, { deleted: count });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Temp debug: delete a single record by id (userId required as a scoping guard)
+router.delete("/api/debug/record", async (req, res, next) => {
+  try {
+    const { userId, recordId } = req.query;
+    if (!userId || !isValidUserId(String(userId))) {
+      return fail(res, 400, "INVALID_USER_ID", "userId is invalid");
+    }
+    if (!recordId) {
+      return fail(res, 400, "MISSING", "recordId required");
+    }
+
+    const { count } = await prisma.bibleRecord.deleteMany({
+      where: { userId: String(userId), recordId: String(recordId) },
     });
 
     return ok(res, { deleted: count });
